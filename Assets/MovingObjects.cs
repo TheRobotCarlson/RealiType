@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(BoxCollider),typeof (SphereCollider))]
 
 public class MovingObjects : MonoBehaviour 
 {
@@ -11,6 +11,8 @@ public class MovingObjects : MonoBehaviour
 	private bool isPressed = false;
 	private float mouseZ;
 	private float transformZ;
+	private int indexNumMatch;
+	private Vector3[] coordinates;
 	
 	protected virtual void Update ()
 	{
@@ -22,9 +24,23 @@ public class MovingObjects : MonoBehaviour
 	
 	void OnMouseDown()
 	{
-		screenPoint = Camera.main.WorldToScreenPoint (gameObject.transform.position);
-		mouseZ = Input.mousePosition.y;
 		
+		Vector3 click = gameObject.transform.position;
+		screenPoint = Camera.main.WorldToScreenPoint (click);
+		mouseZ = Input.mousePosition.y;	
+		GameObject[] objects =  UnityEngine.Object.FindObjectsOfType<GameObject>();
+		int size = objects.Length;
+		coordinates = new Vector3[size];
+		for (int item = 0; item < size; item ++)
+		{
+			if (click == objects[item].transform.position)
+			{
+				indexNumMatch = item;
+			}
+			coordinates[item] = objects [item].transform.position;
+		}
+
+
 	}
 	
 	void OnMouseDrag()
@@ -38,6 +54,17 @@ public class MovingObjects : MonoBehaviour
 		else
 			curScreenPoint = new Vector3 (Input.mousePosition.x, Input.mousePosition.y, screenPoint.z);
 		curPosition = Camera.main.ScreenToWorldPoint (curScreenPoint);
-		transform.position = curPosition;
+		bool matches = false;
+		for (int i = 0; i < coordinates.Length; i++) 
+		{
+			if(i != indexNumMatch && Mathf.Abs(coordinates[i].x - curPosition.x) <= 1 &&
+			    Mathf.Abs(coordinates[i].y - curPosition.y) <= 1 &&
+			    Mathf.Abs(coordinates[i].z - curPosition.z) <= 1)
+				matches = true;
+		}
+		if (curPosition.y >= 0 && matches == false)
+			transform.position = curPosition;
 	}
+
+
 }
